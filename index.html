@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICE BATTERY — Thermal Energy Storage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  /* ─── CSS Variables ─────────────────────────────── */
+  :root {
+    --ice:       #C8E8F5;
+    --ice-mid:   #7AC4E0;
+    --glacier:   #0A4F72;
+    --deep:      #041C2C;
+    --midnight:  #020D16;
+    --white:     #F4F8FB;
+    --muted:     #6A8FA8;
+    --accent:    #00D4FF;
+    --warm:      #E8F4FD;
+    --gold:      #B8D4E8;
+
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ─── Reset ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+  body {
+    font-family: var(--font-body);
+    background: var(--midnight);
+    color: var(--white);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+  img { display: block; max-width: 100%; }
+
+  /* ─── Scrollbar ──────────────────────────────────── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--midnight); }
+  ::-webkit-scrollbar-thumb { background: var(--glacier); border-radius: 2px; }
+
+  /* ─── NAV ────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 3rem;
+    transition: background 0.4s var(--ease-in-out), backdrop-filter 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(2, 13, 22, 0.88);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(200, 232, 245, 0.08);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 0.7rem;
+    font-family: var(--font-head); font-size: 1.15rem; font-weight: 800;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--white);
+  }
+  .nav-logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--glacier) 100%);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; color: var(--midnight);
+  }
+  .nav-links {
+    display: flex; align-items: center; gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 1px; background: var(--accent);
+    transform: scaleX(0); transition: transform 0.25s var(--ease-out-expo);
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+  .nav-cta {
+    padding: 0.55rem 1.4rem;
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    border-radius: 4px;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent) !important;
+    transition: background 0.2s, border-color 0.2s !important;
+  }
+  .nav-cta:hover {
+    background: rgba(0, 212, 255, 0.08) !important;
+    border-color: var(--accent) !important;
+  }
+  .nav-cta::after { display: none !important; }
+
+  /* ─── HERO ───────────────────────────────────────── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    padding: 10rem 3rem 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 50%, rgba(10, 79, 114, 0.35) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 40% at 85% 20%, rgba(0, 212, 255, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 10% 80%, rgba(4, 28, 44, 0.9) 0%, transparent 70%),
+      var(--midnight);
+  }
+  /* Animated ice crystal grid */
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 70% 70% at 70% 50%, black 0%, transparent 80%);
+    animation: gridDrift 20s linear infinite;
+  }
+  @keyframes gridDrift {
+    from { background-position: 0 0; }
+    to { background-position: 60px 60px; }
+  }
+  /* Floating orbs */
+  .orb {
+    position: absolute; border-radius: 50%; z-index: 0;
+    filter: blur(60px);
+    animation: orbFloat 8s ease-in-out infinite alternate;
+  }
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,212,255,0.12) 0%, transparent 70%);
+    right: 5%; top: 10%;
+    animation-duration: 11s;
+  }
+  .orb-2 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(122,196,224,0.15) 0%, transparent 70%);
+    right: 30%; top: 60%;
+    animation-duration: 7s;
+    animation-delay: -3s;
+  }
+  .orb-3 {
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(10,79,114,0.4) 0%, transparent 70%);
+    right: 10%; bottom: 15%;
+    animation-duration: 9s;
+    animation-delay: -5s;
+  }
+  @keyframes orbFloat {
+    from { transform: translateY(0) scale(1); }
+    to { transform: translateY(-30px) scale(1.05); }
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 720px; }
+  .hero-label {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    font-family: var(--font-mono); font-size: 0.72rem;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.8rem;
+    opacity: 0; animation: fadeUp 0.8s var(--ease-out-expo) 0.2s forwards;
+  }
+  .hero-label-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    opacity: 0; animation: fadeUp 0.9s var(--ease-out-expo) 0.35s forwards;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--ice-mid) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    margin-top: 1.6rem;
+    font-size: 1.05rem; font-weight: 300; line-height: 1.7;
+    color: rgba(244, 248, 251, 0.65);
+    max-width: 540px;
+    opacity: 0; animation: fadeUp 0.9s var(--ease-out-expo) 0.5s forwards;
+  }
+  .hero-actions {
+    margin-top: 2.8rem;
+    display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.9s var(--ease-out-expo) 0.65s forwards;
+  }
+  .btn-primary {
+    padding: 0.9rem 2rem;
+    background: linear-gradient(135deg, var(--accent) 0%, #007FAB 100%);
+    color: var(--midnight);
+    font-family: var(--font-head); font-size: 0.82rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    border-radius: 4px;
+    border: none; cursor: pointer;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 30px rgba(0,212,255,0.25);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(0,212,255,0.4);
+  }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    padding: 0.9rem 2rem;
+    border: 1px solid rgba(200,232,245,0.2);
+    border-radius: 4px;
+    font-family: var(--font-head); font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--white); cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-ghost:hover {
+    border-color: rgba(200,232,245,0.5);
+    background: rgba(200,232,245,0.05);
+  }
+  .hero-stats {
+    position: relative; z-index: 1;
+    display: flex; gap: 3rem;
+    margin-top: 5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(200,232,245,0.1);
+    opacity: 0; animation: fadeUp 0.9s var(--ease-out-expo) 0.8s forwards;
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: var(--font-head); font-size: 2rem; font-weight: 800;
+    color: var(--white); line-height: 1;
+  }
+  .stat-num span { color: var(--accent); }
+  .stat-label {
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-top: 0.3rem;
+  }
+  .hero-visual {
+    position: absolute; right: 3rem; top: 50%; transform: translateY(-50%);
+    z-index: 1;
+    opacity: 0; animation: fadeIn 1.2s var(--ease-out-expo) 0.6s forwards;
+  }
+  /* Hexagonal ice crystal SVG animation */
+  .crystal-wrap {
+    position: relative; width: 420px; height: 420px;
+  }
+  .crystal-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(0,212,255,0.12);
+    animation: rotate 20s linear infinite;
+  }
+  .crystal-ring:nth-child(2) {
+    inset: 30px;
+    border-color: rgba(0,212,255,0.08);
+    animation-direction: reverse;
+    animation-duration: 15s;
+  }
+  .crystal-ring:nth-child(3) {
+    inset: 70px;
+    border-color: rgba(0,212,255,0.15);
+    animation-duration: 25s;
+  }
+  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .crystal-core {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; height: 200px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ─── SECTION BASE ───────────────────────────────── */
+  section { padding: 7rem 3rem; }
+  .section-label {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    font-family: var(--font-mono); font-size: 0.7rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.2rem;
+  }
+  .section-label::before {
+    content: ''; display: block; width: 24px; height: 1px;
+    background: var(--accent);
+  }
+  h2 {
+    font-family: var(--font-head); font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;
+    color: var(--white);
+  }
+  h2 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--ice-mid) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Reveal on scroll */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ─── MISSION ────────────────────────────────────── */
+  #mission {
+    background: var(--deep);
+    position: relative; overflow: hidden;
+  }
+  #mission::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+  }
+  .mission-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6rem;
+    align-items: center;
+  }
+  .mission-text {}
+  .mission-quote {
+    font-family: var(--font-head); font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 700; line-height: 1.4; color: var(--white);
+    margin-top: 1.5rem;
+  }
+  .mission-quote strong { color: var(--accent); font-weight: 800; }
+  .mission-body {
+    margin-top: 1.5rem; font-size: 1rem; line-height: 1.8;
+    color: rgba(244,248,251,0.6); font-weight: 300;
+  }
+  .mission-pillars {
+    display: flex; flex-direction: column; gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  .pillar {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1.4rem 1.6rem;
+    background: rgba(0,212,255,0.04);
+    border: 1px solid rgba(0,212,255,0.1);
+    border-radius: 8px;
+    transition: border-color 0.3s, background 0.3s, transform 0.3s;
+  }
+  .pillar:hover {
+    border-color: rgba(0,212,255,0.25);
+    background: rgba(0,212,255,0.07);
+    transform: translateX(4px);
+  }
+  .pillar-icon {
+    width: 38px; height: 38px; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(0,212,255,0.2) 0%, rgba(10,79,114,0.3) 100%);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; color: var(--accent);
+  }
+  .pillar-text {}
+  .pillar-title {
+    font-family: var(--font-head); font-size: 0.9rem; font-weight: 700;
+    letter-spacing: 0.04em; color: var(--white); margin-bottom: 0.25rem;
+  }
+  .pillar-desc {
+    font-size: 0.82rem; line-height: 1.6; color: var(--muted);
+  }
+  /* Mission visual - ice crystal diagram */
+  .mission-visual {
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .hex-diagram {
+    position: relative; width: 320px; height: 320px;
+  }
+  .hex-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px; height: 90px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--glacier) 100%);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: var(--midnight);
+    animation: hexPulse 3s ease-in-out infinite;
+  }
+  @keyframes hexPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.06); }
+  }
+  .hex-item {
+    position: absolute; width: 72px; height: 72px;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: var(--accent);
+    transition: background 0.3s;
+  }
+  .hex-item:hover { background: rgba(0,212,255,0.15); }
+  .hex-item:nth-child(2) { top: 10px; left: 50%; transform: translateX(-50%); }
+  .hex-item:nth-child(3) { top: 75px; right: 20px; }
+  .hex-item:nth-child(4) { bottom: 75px; right: 20px; }
+  .hex-item:nth-child(5) { bottom: 10px; left: 50%; transform: translateX(-50%); }
+  .hex-item:nth-child(6) { bottom: 75px; left: 20px; }
+  .hex-item:nth-child(7) { top: 75px; left: 20px; }
+  .hex-connector {
+    position: absolute; top: 50%; left: 50%;
+    width: 50%; height: 1px;
+    background: linear-gradient(90deg, rgba(0,212,255,0.4) 0%, transparent 100%);
+    transform-origin: left center;
+  }
+
+  /* ─── VISION ─────────────────────────────────────── */
+  #vision {
+    background: var(--midnight);
+    position: relative; overflow: hidden;
+  }
+  .vision-bg-text {
+    position: absolute; bottom: -2rem; right: -2rem;
+    font-family: var(--font-head); font-size: 18vw; font-weight: 800;
+    color: rgba(0,212,255,0.02); letter-spacing: -0.05em;
+    pointer-events: none; user-select: none; line-height: 1;
+  }
+  .vision-inner { max-width: 1200px; margin: 0 auto; }
+  .vision-header {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: end;
+    margin-bottom: 4rem;
+  }
+  .vision-heading {}
+  .vision-statement {
+    font-size: 1.05rem; line-height: 1.8; color: rgba(244,248,251,0.6);
+    font-weight: 300; border-left: 2px solid var(--accent);
+    padding-left: 1.5rem;
+  }
+  .vision-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+  }
+  .vision-card {
+    padding: 2rem;
+    background: rgba(200,232,245,0.03);
+    border: 1px solid rgba(200,232,245,0.08);
+    border-radius: 12px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s, background 0.3s;
+    cursor: default;
+  }
+  .vision-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--glacier));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s var(--ease-out-expo);
+  }
+  .vision-card:hover {
+    border-color: rgba(0,212,255,0.2);
+    transform: translateY(-4px);
+    background: rgba(0,212,255,0.04);
+  }
+  .vision-card:hover::before { transform: scaleX(1); }
+  .vision-card-num {
+    font-family: var(--font-mono); font-size: 0.68rem;
+    letter-spacing: 0.15em; color: var(--muted);
+    margin-bottom: 1.2rem;
+  }
+  .vision-card-icon {
+    width: 48px; height: 48px; margin-bottom: 1.2rem;
+    background: linear-gradient(135deg, rgba(0,212,255,0.15) 0%, rgba(10,79,114,0.2) 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; color: var(--accent);
+    transition: transform 0.3s;
+  }
+  .vision-card:hover .vision-card-icon { transform: scale(1.1) rotate(-5deg); }
+  .vision-card-title {
+    font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+    color: var(--white); margin-bottom: 0.6rem;
+  }
+  .vision-card-text {
+    font-size: 0.85rem; line-height: 1.7; color: var(--muted);
+  }
+
+  /* ─── TIMELINE ───────────────────────────────────── */
+  #timeline {
+    background: var(--deep);
+    position: relative; overflow: hidden;
+  }
+  #timeline::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), transparent);
+  }
+  .timeline-inner { max-width: 1200px; margin: 0 auto; }
+  .timeline-header { text-align: center; margin-bottom: 5rem; }
+  .timeline-track {
+    position: relative;
+    padding: 0 1rem;
+  }
+  .timeline-line {
+    position: absolute; top: 28px; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,0.25) 10%, rgba(0,212,255,0.25) 90%, transparent 100%);
+  }
+  .timeline-line-progress {
+    position: absolute; top: 28px; left: 0; height: 1px; width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--glacier));
+    transition: width 1.5s var(--ease-out-expo);
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .timeline-items {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;
+    position: relative;
+  }
+  .timeline-item {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 0 0.5rem;
+    cursor: default;
+  }
+  .timeline-dot {
+    width: 56px; height: 56px; flex-shrink: 0;
+    background: var(--deep);
+    border: 2px solid rgba(0,212,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: var(--muted);
+    transition: border-color 0.3s, background 0.3s, color 0.3s, transform 0.3s;
+    position: relative; z-index: 1;
+  }
+  .timeline-item:hover .timeline-dot,
+  .timeline-item.active .timeline-dot {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.12);
+    color: var(--accent);
+    transform: scale(1.1);
+  }
+  .timeline-year {
+    font-family: var(--font-mono); font-size: 0.7rem;
+    letter-spacing: 0.12em; color: var(--accent);
+    margin-top: 0.8rem;
+  }
+  .timeline-title {
+    font-family: var(--font-head); font-size: 0.85rem; font-weight: 700;
+    color: var(--white); margin-top: 0.4rem; line-height: 1.3;
+  }
+  .timeline-desc {
+    font-size: 0.75rem; line-height: 1.6; color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  /* ─── PRODUCT ────────────────────────────────────── */
+  #product {
+    background: var(--midnight);
+    position: relative; overflow: hidden;
+  }
+  .product-inner {
+    max-width: 1200px; margin: 0 auto;
+  }
+  .product-header {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: end;
+    margin-bottom: 5rem;
+  }
+  .product-intro {
+    font-size: 1rem; line-height: 1.8; color: rgba(244,248,251,0.6);
+    font-weight: 300;
+  }
+  .product-layout {
+    display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 5rem; align-items: center;
+  }
+  /* Product diagram */
+  .product-diagram {
+    position: relative;
+  }
+  .diagram-card {
+    background: rgba(200,232,245,0.03);
+    border: 1px solid rgba(200,232,245,0.1);
+    border-radius: 16px;
+    padding: 3rem 2.5rem;
+    position: relative; overflow: hidden;
+  }
+  .diagram-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .diagram-title {
+    font-family: var(--font-head); font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 2rem;
+  }
+  /* The cycle diagram */
+  .cycle-diagram {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .cycle-block {
+    padding: 1.2rem;
+    border-radius: 10px;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    position: relative;
+    transition: transform 0.3s;
+  }
+  .cycle-block:hover { transform: scale(1.02); }
+  .cycle-block.night {
+    background: linear-gradient(135deg, rgba(4,28,44,0.8) 0%, rgba(10,79,114,0.2) 100%);
+    border: 1px solid rgba(122,196,224,0.2);
+  }
+  .cycle-block.day {
+    background: linear-gradient(135deg, rgba(0,212,255,0.06) 0%, rgba(0,127,171,0.1) 100%);
+    border: 1px solid rgba(0,212,255,0.2);
+  }
+  .cycle-block-icon {
+    font-size: 1.4rem; color: var(--accent); margin-bottom: 0.2rem;
+  }
+  .cycle-block.night .cycle-block-icon { color: var(--ice-mid); }
+  .cycle-block-label {
+    font-family: var(--font-mono); font-size: 0.65rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .cycle-block-value {
+    font-family: var(--font-head); font-size: 1.1rem; font-weight: 700;
+    color: var(--white);
+  }
+  .cycle-block-sub {
+    font-size: 0.72rem; color: var(--muted); line-height: 1.4;
+  }
+  .cycle-arrow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.4rem; margin: 0.5rem 0; color: var(--muted); font-size: 0.75rem;
+  }
+  /* metrics bar */
+  .metric-bars { margin-top: 1.5rem; }
+  .metric-bar-item { margin-bottom: 1rem; }
+  .metric-bar-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.4rem;
+  }
+  .metric-bar-label {
+    font-size: 0.78rem; color: var(--muted);
+    font-family: var(--font-mono); letter-spacing: 0.06em;
+  }
+  .metric-bar-val {
+    font-size: 0.78rem; color: var(--accent);
+    font-family: var(--font-mono);
+  }
+  .metric-bar-track {
+    height: 4px; background: rgba(200,232,245,0.08); border-radius: 2px;
+    overflow: hidden;
+  }
+  .metric-bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--glacier));
+    width: 0; transition: width 1.2s var(--ease-out-expo);
+  }
+  /* Value props */
+  .value-props {
+    display: flex; flex-direction: column; gap: 1.8rem;
+  }
+  .value-prop {
+    display: flex; gap: 1.2rem; align-items: flex-start;
+    padding: 1.5rem;
+    background: rgba(200,232,245,0.02);
+    border: 1px solid rgba(200,232,245,0.07);
+    border-radius: 10px;
+    transition: border-color 0.3s, background 0.3s, transform 0.3s;
+  }
+  .value-prop:hover {
+    border-color: rgba(0,212,255,0.2);
+    background: rgba(0,212,255,0.04);
+    transform: translateX(4px);
+  }
+  .vp-icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(0,212,255,0.12) 0%, rgba(10,79,114,0.2) 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: var(--accent);
+  }
+  .vp-content {}
+  .vp-title {
+    font-family: var(--font-head); font-size: 0.95rem; font-weight: 700;
+    color: var(--white); margin-bottom: 0.3rem;
+  }
+  .vp-desc {
+    font-size: 0.82rem; line-height: 1.65; color: var(--muted);
+  }
+  .vp-badge {
+    display: inline-block; margin-top: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 3px;
+    font-family: var(--font-mono); font-size: 0.62rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ─── NUMBERS ────────────────────────────────────── */
+  #numbers {
+    background: linear-gradient(180deg, var(--deep) 0%, var(--midnight) 100%);
+    padding: 5rem 3rem;
+    position: relative; overflow: hidden;
+  }
+  #numbers::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+  }
+  .numbers-inner { max-width: 1200px; margin: 0 auto; }
+  .numbers-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .number-item {
+    padding: 2.5rem;
+    border-right: 1px solid rgba(200,232,245,0.07);
+    text-align: center;
+    transition: background 0.3s;
+  }
+  .number-item:last-child { border-right: none; }
+  .number-item:hover { background: rgba(0,212,255,0.03); }
+  .number-val {
+    font-family: var(--font-head); font-size: 3rem; font-weight: 800;
+    color: var(--white); line-height: 1;
+  }
+  .number-val span { color: var(--accent); }
+  .number-desc {
+    font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin-top: 0.5rem;
+    font-family: var(--font-mono);
+  }
+
+  /* ─── CTA ────────────────────────────────────────── */
+  #cta {
+    padding: 8rem 3rem;
+    background: var(--deep);
+    position: relative; overflow: hidden;
+    text-align: center;
+  }
+  .cta-glow {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(0,212,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-inner { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+  .cta-label {
+    display: inline-block;
+    font-family: var(--font-mono); font-size: 0.7rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.5rem;
+  }
+  .cta-heading {
+    font-family: var(--font-head); font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;
+    color: var(--white); margin-bottom: 1.2rem;
+  }
+  .cta-sub {
+    font-size: 1rem; line-height: 1.7; color: rgba(244,248,251,0.55);
+    font-weight: 300; margin-bottom: 2.5rem;
+  }
+  .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  /* ─── FOOTER ─────────────────────────────────────── */
+  footer {
+    background: var(--midnight);
+    padding: 4rem 3rem 2rem;
+    border-top: 1px solid rgba(200,232,245,0.07);
+  }
+  .footer-inner {
+    max-width: 1200px; margin: 0 auto;
+  }
+  .footer-top {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4rem;
+    margin-bottom: 3rem;
+  }
+  .footer-brand { }
+  .footer-tagline {
+    font-size: 0.85rem; line-height: 1.7; color: var(--muted);
+    margin-top: 1rem; max-width: 280px;
+  }
+  .footer-socials {
+    display: flex; gap: 0.8rem; margin-top: 1.5rem;
+  }
+  .social-btn {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(200,232,245,0.12);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; color: var(--muted);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .social-btn:hover {
+    border-color: rgba(0,212,255,0.3);
+    color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+  .footer-col-title {
+    font-family: var(--font-head); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--white); margin-bottom: 1.2rem;
+  }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .footer-links a {
+    font-size: 0.83rem; color: var(--muted);
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--white); }
+  .footer-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(200,232,245,0.06);
+  }
+  .footer-copy {
+    font-size: 0.75rem; color: rgba(106,143,168,0.6);
+    font-family: var(--font-mono);
+  }
+  .footer-badge {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font-mono); font-size: 0.65rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(106,143,168,0.5);
+  }
+  .footer-badge-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #2ecc71;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* ─── MOBILE NAV ─────────────────────────────────── */
+  .hamburger {
+    display: none; background: none; border: none; cursor: pointer;
+    flex-direction: column; gap: 5px; padding: 4px;
+  }
+  .hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: var(--white); border-radius: 1px;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────────────── */
+  @media (max-width: 1024px) {
+    nav { padding: 1.2rem 2rem; }
+    section { padding: 5rem 2rem; }
+    #hero { padding: 9rem 2rem 5rem; }
+    .hero-visual { display: none; }
+    .mission-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .mission-visual { display: none; }
+    .vision-header { grid-template-columns: 1fr; gap: 1.5rem; }
+    .vision-cards { grid-template-columns: 1fr 1fr; }
+    .product-header { grid-template-columns: 1fr; gap: 1.5rem; }
+    .product-layout { grid-template-columns: 1fr; gap: 3rem; }
+    .numbers-grid { grid-template-columns: repeat(2, 1fr); }
+    .number-item:nth-child(2) { border-right: none; }
+    .number-item:nth-child(3) { border-top: 1px solid rgba(200,232,245,0.07); }
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+    .timeline-items { grid-template-columns: 1fr; gap: 2rem; }
+    .timeline-line { display: none; }
+    .timeline-line-progress { display: none; }
+    .timeline-item { flex-direction: row; text-align: left; gap: 1.2rem; align-items: flex-start; }
+    .timeline-dot { flex-shrink: 0; }
+  }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    h1 { font-size: 2.6rem; }
+    .hero-stats { flex-wrap: wrap; gap: 2rem; }
+    .vision-cards { grid-template-columns: 1fr; }
+    .numbers-grid { grid-template-columns: 1fr 1fr; }
+    .footer-top { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+    .cycle-diagram { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    section { padding: 4rem 1.2rem; }
+    #hero { padding: 8rem 1.2rem 4rem; }
+    nav { padding: 1rem 1.2rem; }
+    .numbers-grid { grid-template-columns: 1fr; }
+    .number-item { border-right: none; border-bottom: 1px solid rgba(200,232,245,0.07); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     NAV
+═══════════════════════════════════════════════ -->
+<nav id="mainNav">
+  <div class="nav-logo">
+    <div class="nav-logo-icon">
+      <i class="fa-solid fa-snowflake"></i>
+    </div>
+    ICE BATTERY
+  </div>
+  <ul class="nav-links">
+    <li><a href="#mission">Mission</a></li>
+    <li><a href="#vision">Vision</a></li>
+    <li><a href="#timeline">History</a></li>
+    <li><a href="#product">Product</a></li>
+    <li><a href="#cta" class="nav-cta">Contact</a></li>
+  </ul>
+  <button class="hamburger" aria-label="Menu" onclick="toggleMenu(this)">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-content">
+    <div class="hero-label">
+      <span class="hero-label-dot"></span>
+      Thermal Energy Storage — Japan
+    </div>
+    <h1>Freeze Energy.<br>Power <em>Tomorrow.</em></h1>
+    <p class="hero-sub">
+      Ice Battery harnesses the extraordinary power of phase-change physics to store renewable energy as ice—delivering peak-hour cooling at a fraction of the cost while decarbonising the grid.
+    </p>
+    <div class="hero-actions">
+      <a href="#product" class="btn-primary">Explore the Technology</a>
+      <a href="#mission" class="btn-ghost">
+        <i class="fa-regular fa-circle-play"></i>
+        Our Mission
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">95<span>%</span></div>
+      <div class="stat-label">Peak Load Reduction</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">50<span>%</span></div>
+      <div class="stat-label">Lower Lifecycle Cost vs Li-ion</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">20<span>yr</span></div>
+      <div class="stat-label">Design Service Life</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">98<span>%</span></div>
+      <div class="stat-label">System Reliability</div>
+    </div>
+  </div>
+
+  <!-- Crystal visual -->
+  <div class="hero-visual">
+    <div class="crystal-wrap">
+      <div class="crystal-ring"></div>
+      <div class="crystal-ring"></div>
+      <div class="crystal-ring"></div>
+      <div class="crystal-core">
+        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer hex -->
+          <polygon points="100,18 174,59 174,141 100,182 26,141 26,59"
+            fill="rgba(0,212,255,0.06)"
+            stroke="rgba(0,212,255,0.35)" stroke-width="1.5"/>
+          <!-- Inner hex -->
+          <polygon points="100,44 148,71 148,126 100,153 52,126 52,71"
+            fill="rgba(0,212,255,0.08)"
+            stroke="rgba(0,212,255,0.25)" stroke-width="1"/>
+          <!-- Core hex -->
+          <polygon points="100,66 128,82 128,116 100,132 72,116 72,82"
+            fill="rgba(0,212,255,0.18)"
+            stroke="rgba(0,212,255,0.5)" stroke-width="1.5"/>
+          <!-- Center -->
+          <circle cx="100" cy="100" r="16" fill="rgba(0,212,255,0.9)"/>
+          <!-- Axes -->
+          <line x1="100" y1="10" x2="100" y2="190" stroke="rgba(0,212,255,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="10" y1="100" x2="190" y2="100" stroke="rgba(0,212,255,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="30" y1="30" x2="170" y2="170" stroke="rgba(0,212,255,0.1)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="170" y1="30" x2="30" y2="170" stroke="rgba(0,212,255,0.1)" stroke-width="1" stroke-dasharray="4,4"/>
+          <!-- Tick marks -->
+          <circle cx="100" cy="18"  r="3" fill="rgba(0,212,255,0.6)"/>
+          <circle cx="174" cy="59"  r="3" fill="rgba(0,212,255,0.6)"/>
+          <circle cx="174" cy="141" r="3" fill="rgba(0,212,255,0.6)"/>
+          <circle cx="100" cy="182" r="3" fill="rgba(0,212,255,0.6)"/>
+          <circle cx="26"  cy="141" r="3" fill="rgba(0,212,255,0.6)"/>
+          <circle cx="26"  cy="59"  r="3" fill="rgba(0,212,255,0.6)"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     MISSION
+═══════════════════════════════════════════════ -->
+<section id="mission">
+  <div class="mission-inner">
+    <div class="mission-text">
+      <div class="section-label reveal">Mission</div>
+      <h2 class="reveal reveal-delay-1">Built to Cool the World.<br><em>Not Warm It.</em></h2>
+      <p class="mission-quote reveal reveal-delay-2">
+        "We exist to <strong>shift when energy is consumed</strong>, not just how much—turning every building into a node of grid stability."
+      </p>
+      <p class="mission-body reveal reveal-delay-3">
+        Ice Battery was founded on a simple but powerful insight: the most effective way to decarbonise air conditioning is not to replace the compressor—but to move electricity consumption to moments when the grid is cleanest and cheapest. Using ice as a thermal battery, we decouple cooling demand from peak generation, permanently.
+      </p>
+      <div class="mission-pillars">
+        <div class="pillar reveal reveal-delay-1">
+          <div class="pillar-icon"><i class="fa-solid fa-leaf"></i></div>
+          <div class="pillar-text">
+            <div class="pillar-title">Carbon Neutral Cooling</div>
+            <div class="pillar-desc">Charge with overnight renewable surplus; discharge clean cold all day—zero marginal emissions.</div>
+          </div>
+        </div>
+        <div class="pillar reveal reveal-delay-2">
+          <div class="pillar-icon"><i class="fa-solid fa-bolt"></i></div>
+          <div class="pillar-text">
+            <div class="pillar-title">Grid Resilience at Scale</div>
+            <div class="pillar-desc">Aggregated Ice Battery fleets act as dispatchable virtual power plants, flattening the duck curve.</div>
+          </div>
+        </div>
+        <div class="pillar reveal reveal-delay-3">
+          <div class="pillar-icon"><i class="fa-solid fa-coins"></i></div>
+          <div class="pillar-text">
+            <div class="pillar-title">Economic Accessibility</div>
+            <div class="pillar-desc">Life-cycle cost under half that of lithium-ion, making sustainable cooling viable for every building.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mission-visual reveal">
+      <div class="hex-diagram">
+        <div class="hex-center"><i class="fa-solid fa-snowflake"></i></div>
+        <div class="hex-item"><i class="fa-solid fa-sun"></i></div>
+        <div class="hex-item"><i class="fa-solid fa-wind"></i></div>
+        <div class="hex-item"><i class="fa-solid fa-building"></i></div>
+        <div class="hex-item"><i class="fa-solid fa-plug"></i></div>
+        <div class="hex-item"><i class="fa-solid fa-droplet"></i></div>
+        <div class="hex-item"><i class="fa-solid fa-seedling"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     VISION
+═══════════════════════════════════════════════ -->
+<section id="vision">
+  <div class="vision-bg-text">2050</div>
+  <div class="vision-inner">
+    <div class="vision-header">
+      <div>
+        <div class="section-label reveal">Vision</div>
+        <h2 class="reveal reveal-delay-1">A World Where<br><em>Buildings Give Back.</em></h2>
+      </div>
+      <p class="vision-statement reveal reveal-delay-2">
+        By 2050, every large building on the planet becomes an active, intelligent participant in the energy grid—generating, storing, and sharing clean thermal energy rather than consuming it blindly. Ice Battery is the infrastructure layer that makes this future real today.
+      </p>
+    </div>
+    <div class="vision-cards">
+      <div class="vision-card reveal reveal-delay-1">
+        <div class="vision-card-num">01 / 05</div>
+        <div class="vision-card-icon"><i class="fa-solid fa-earth-asia"></i></div>
+        <div class="vision-card-title">Global Decarbonisation</div>
+        <p class="vision-card-text">Eliminate 500 million tonnes of CO₂ annually by shifting air-conditioning demand to renewable generation windows.</p>
+      </div>
+      <div class="vision-card reveal reveal-delay-2">
+        <div class="vision-card-num">02 / 05</div>
+        <div class="vision-card-icon"><i class="fa-solid fa-network-wired"></i></div>
+        <div class="vision-card-title">Distributed Grid Intelligence</div>
+        <p class="vision-card-text">One million Ice Battery nodes, orchestrated as a single intelligent virtual power plant balancing grids in real time.</p>
+      </div>
+      <div class="vision-card reveal reveal-delay-3">
+        <div class="vision-card-num">03 / 05</div>
+        <div class="vision-card-icon"><i class="fa-solid fa-city"></i></div>
+        <div class="vision-card-title">Net-Zero Urban Cooling</div>
+        <p class="vision-card-text">Dense urban districts achieve net-zero cooling through shared ice thermal storage infrastructure embedded in buildings.</p>
+      </div>
+      <div class="vision-card reveal reveal-delay-1">
+        <div class="vision-card-num">04 / 05</div>
+        <div class="vision-card-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="vision-card-title">Affordable Clean Energy</div>
+        <p class="vision-card-text">Drive the cost of stored thermal energy below that of any alternative, making green cooling the economic default.</p>
+      </div>
+      <div class="vision-card reveal reveal-delay-2">
+        <div class="vision-card-num">05 / 05</div>
+        <div class="vision-card-icon"><i class="fa-solid fa-handshake"></i></div>
+        <div class="vision-card-title">Public–Private Partnership</div>
+        <p class="vision-card-text">Partner with utilities, municipalities and property developers to embed ice storage in the next generation of infrastructure.</p>
+      </div>
+      <div class="vision-card reveal reveal-delay-3" style="background: linear-gradient(135deg, rgba(0,212,255,0.06) 0%, rgba(10,79,114,0.08) 100%); border-color: rgba(0,212,255,0.15);">
+        <div class="vision-card-num" style="color: var(--accent);">FORWARD</div>
+        <div class="vision-card-icon" style="background: rgba(0,212,255,0.15);"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="vision-card-title">2030 Milestone</div>
+        <p class="vision-card-text">100,000 installations across Asia-Pacific, enabling 12 GWh of distributed thermal energy capacity.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     TIMELINE
+═══════════════════════════════════════════════ -->
+<section id="timeline">
+  <div class="timeline-inner">
+    <div class="timeline-header">
+      <div class="section-label reveal" style="display: block; text-align: center; margin-bottom: 0.8rem;">Company History</div>
+      <h2 class="reveal reveal-delay-1" style="text-align: center;">Two Decades of<br><em>Cold Innovation</em></h2>
+    </div>
+    <div class="timeline-track">
+      <div class="timeline-line"></div>
+      <div class="timeline-line-progress" id="timelineProgress"></div>
+      <div class="timeline-items">
+        <div class="timeline-item reveal reveal-delay-1">
+          <div class="timeline-dot"><i class="fa-solid fa-lightbulb"></i></div>
+          <div>
+            <div class="timeline-year">2003</div>
+            <div class="timeline-title">Founding & First Patent</div>
+            <div class="timeline-desc">Core thermal storage concept patented; pilot unit installed at Osaka commercial tower.</div>
+          </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-2">
+          <div class="timeline-dot"><i class="fa-solid fa-flask"></i></div>
+          <div>
+            <div class="timeline-year">2009</div>
+            <div class="timeline-title">Commercial Launch</div>
+            <div class="timeline-desc">ICE BATTERY™ Series I introduced to Japanese market; 50 installations in Year One.</div>
+          </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-3">
+          <div class="timeline-dot"><i class="fa-solid fa-globe"></i></div>
+          <div>
+            <div class="timeline-year">2015</div>
+            <div class="timeline-title">Asia-Pacific Expansion</div>
+            <div class="timeline-desc">Offices opened in Singapore, South Korea, and Australia; 1,000 cumulative installations.</div>
+          </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-4">
+          <div class="timeline-dot"><i class="fa-solid fa-microchip"></i></div>
+          <div>
+            <div class="timeline-year">2020</div>
+            <div class="timeline-title">Smart Grid Integration</div>
+            <div class="timeline-desc">AI-powered VPP platform launched; real-time grid dispatch enables demand response at scale.</div>
+          </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-4" style="transition-delay: 0.5s">
+          <div class="timeline-dot" style="border-color: rgba(0,212,255,0.4);"><i class="fa-solid fa-rocket" style="color: var(--accent);"></i></div>
+          <div>
+            <div class="timeline-year">2025</div>
+            <div class="timeline-title">Series III & IPO</div>
+            <div class="timeline-desc">Next-gen modular platform released; public offering raises ¥12B for global rollout.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     NUMBERS
+═══════════════════════════════════════════════ -->
+<div id="numbers">
+  <div class="numbers-inner">
+    <div class="numbers-grid">
+      <div class="number-item reveal">
+        <div class="number-val">10<span>K+</span></div>
+        <div class="number-desc">Global Installations</div>
+      </div>
+      <div class="number-item reveal reveal-delay-1">
+        <div class="number-val">35<span>M</span></div>
+        <div class="number-desc">Operating Hours Logged</div>
+      </div>
+      <div class="number-item reveal reveal-delay-2">
+        <div class="number-val">8<span>GWh</span></div>
+        <div class="number-desc">Thermal Capacity Deployed</div>
+      </div>
+      <div class="number-item reveal reveal-delay-3">
+        <div class="number-val">2.4<span>Mt</span></div>
+        <div class="number-desc">CO₂ Emissions Avoided</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PRODUCT
+═══════════════════════════════════════════════ -->
+<section id="product">
+  <div class="product-inner">
+    <div class="product-header">
+      <div>
+        <div class="section-label reveal">Flagship Product</div>
+        <h2 class="reveal reveal-delay-1">ICE BATTERY™<br><em>Series III</em></h2>
+      </div>
+      <p class="product-intro reveal reveal-delay-2">
+        The world's most advanced modular thermal energy storage system. Series III charges on off-peak electricity—typically overnight—freezing water inside an insulated tank. During peak hours, it discharges stored cold to offset or replace conventional chiller operation for up to eight hours, cutting electricity costs by up to 95% during the most expensive periods of the day.
+      </p>
+    </div>
+
+    <div class="product-layout">
+      <!-- Diagram -->
+      <div class="product-diagram reveal">
+        <div class="diagram-card">
+          <div class="diagram-title">
+            <i class="fa-solid fa-rotate" style="margin-right: 0.5rem; color: var(--accent);"></i>
+            The Charge / Discharge Cycle
+          </div>
+          <div class="cycle-diagram">
+            <div class="cycle-block night">
+              <div class="cycle-block-icon"><i class="fa-solid fa-moon"></i></div>
+              <div class="cycle-block-label">Night — Off-Peak</div>
+              <div class="cycle-block-value">Charging</div>
+              <div class="cycle-block-sub">Chiller freezes water to −22°C. Glycol loop removes heat. Ice block formed. Low tariff electricity used.</div>
+            </div>
+            <div class="cycle-block day">
+              <div class="cycle-block-icon"><i class="fa-solid fa-sun"></i></div>
+              <div class="cycle-block-label">Day — Peak Hours</div>
+              <div class="cycle-block-value">Discharging</div>
+              <div class="cycle-block-sub">Stored ice absorbs building heat passively. Compressor off for up to 8 hours. Peak costs slashed.</div>
+            </div>
+          </div>
+          <div class="cycle-arrow">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>Fully automated daily cycle — no operator intervention required</span>
+          </div>
+          <div class="metric-bars">
+            <div class="metric-bar-item">
+              <div class="metric-bar-header">
+                <span class="metric-bar-label">Round-trip Efficiency</span>
+                <span class="metric-bar-val">85 %</span>
+              </div>
+              <div class="metric-bar-track">
+                <div class="metric-bar-fill" data-width="85"></div>
+              </div>
+            </div>
+            <div class="metric-bar-item">
+              <div class="metric-bar-header">
+                <span class="metric-bar-label">Peak Load Reduction</span>
+                <span class="metric-bar-val">Up to 95 %</span>
+              </div>
+              <div class="metric-bar-track">
+                <div class="metric-bar-fill" data-width="95"></div>
+              </div>
+            </div>
+            <div class="metric-bar-item">
+              <div class="metric-bar-header">
+                <span class="metric-bar-label">System Uptime Reliability</span>
+                <span class="metric-bar-val">98 %</span>
+              </div>
+              <div class="metric-bar-track">
+                <div class="metric-bar-fill" data-width="98"></div>
+              </div>
+            </div>
+            <div class="metric-bar-item">
+              <div class="metric-bar-header">
+                <span class="metric-bar-label">Cost vs Li-Ion Battery</span>
+                <span class="metric-bar-val">&lt;50 %</span>
+              </div>
+              <div class="metric-bar-track">
+                <div class="metric-bar-fill" data-width="50"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Value props -->
+      <div class="value-props">
+        <div class="value-prop reveal reveal-delay-1">
+          <div class="vp-icon"><i class="fa-solid fa-gauge-high"></i></div>
+          <div class="vp-content">
+            <div class="vp-title">Instant Peak Demand Relief</div>
+            <p class="vp-desc">Disconnect energy-hungry compressors for up to 8 peak hours per day, eliminating demand-charge spikes from utility bills.</p>
+            <span class="vp-badge">Up to −95% peak demand</span>
+          </div>
+        </div>
+        <div class="value-prop reveal reveal-delay-2">
+          <div class="vp-icon"><i class="fa-solid fa-layer-group"></i></div>
+          <div class="vp-content">
+            <div class="vp-title">Modular, Scalable Architecture</div>
+            <p class="vp-desc">Stack units from 370 to 1,000+ ton-hours of capacity. Each module ships in a standard container—no custom civil works required.</p>
+            <span class="vp-badge">370 – 1,000 t-hr per unit</span>
+          </div>
+        </div>
+        <div class="value-prop reveal reveal-delay-3">
+          <div class="vp-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="vp-content">
+            <div class="vp-title">Zero Thermal Runaway Risk</div>
+            <p class="vp-desc">Water and glycol only—no lithium, no fire risk, no hazardous disposal. The safest energy storage medium available.</p>
+            <span class="vp-badge">Water-based storage</span>
+          </div>
+        </div>
+        <div class="value-prop reveal reveal-delay-4">
+          <div class="vp-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+          <div class="vp-content">
+            <div class="vp-title">AI-Driven Grid Dispatch</div>
+            <p class="vp-desc">On-board intelligence integrates with utility demand-response programs, optimising charge timing against real-time tariffs and renewable forecasts.</p>
+            <span class="vp-badge">VPP-ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     CTA
+═══════════════════════════════════════════════ -->
+<section id="cta">
+  <div class="cta-glow"></div>
+  <div class="cta-inner reveal">
+    <div class="cta-label">Get Started</div>
+    <h2 class="cta-heading">Ready to Shift Your Energy Future?</h2>
+    <p class="cta-sub">
+      Talk to our engineering team about a feasibility study for your building, district, or utility portfolio. No obligation—just cold, hard numbers.
+    </p>
+    <div class="cta-actions">
+      <a href="#" class="btn-primary">Request a Feasibility Study</a>
+      <a href="#" class="btn-ghost">
+        <i class="fa-regular fa-file-lines"></i>
+        Download Spec Sheet
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="nav-logo-icon"><i class="fa-solid fa-snowflake"></i></div>
+          ICE BATTERY
+        </div>
+        <p class="footer-tagline">
+          Pioneering thermal energy storage for a decarbonised world. Cooling buildings. Stabilising grids. Protecting the planet.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#" class="social-btn" aria-label="Twitter/X"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" class="social-btn" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="#" class="social-btn" aria-label="ResearchGate"><i class="fa-brands fa-researchgate"></i></a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Product</div>
+        <ul class="footer-links">
+          <li><a href="#">Series III Overview</a></li>
+          <li><a href="#">Technical Specifications</a></li>
+          <li><a href="#">VPP Integration</a></li>
+          <li><a href="#">Case Studies</a></li>
+          <li><a href="#">Pricing</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Company</div>
+        <ul class="footer-links">
+          <li><a href="#mission">Mission</a></li>
+          <li><a href="#vision">Vision</a></li>
+          <li><a href="#timeline">History</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <ul class="footer-links">
+          <li><a href="#">White Papers</a></li>
+          <li><a href="#">Engineering Docs</a></li>
+          <li><a href="#">ROI Calculator</a></li>
+          <li><a href="#">API / Data</a></li>
+          <li><a href="#">Support Portal</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 Ice Battery K.K. All rights reserved. Tokyo, Japan.</div>
+      <div class="footer-badge">
+        <span class="footer-badge-dot"></span>
+        Systems operational — 98.4% uptime
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════
+     JS
+═══════════════════════════════════════════════ -->
+<script>
+  // Nav scroll
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 30);
+    // Animate timeline progress
+    const tl = document.getElementById('timeline');
+    const prog = document.getElementById('timelineProgress');
+    if (tl && prog) {
+      const rect = tl.getBoundingClientRect();
+      const ratio = Math.min(Math.max((-rect.top + window.innerHeight * 0.5) / rect.height, 0), 1);
+      prog.style.width = (ratio * 100) + '%';
+    }
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // Metric bars
+        e.target.querySelectorAll('.metric-bar-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => {
+    observer.observe(r);
+    r.querySelectorAll('.metric-bar-fill').forEach(bar => {
+      observer.observe(r);
+    });
+  });
+
+  // Also observe metric bars directly
+  document.querySelectorAll('.diagram-card').forEach(card => {
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('.metric-bar-fill').forEach(bar => {
+            setTimeout(() => { bar.style.width = bar.dataset.width + '%'; }, 300);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    cardObserver.observe(card);
+  });
+
+  // Hamburger
+  function toggleMenu(btn) {
+    const spans = btn.querySelectorAll('span');
+    btn.classList.toggle('open');
+    if (btn.classList.contains('open')) {
+      spans[0].style.transform = 'translateY(7px) rotate(45deg)';
+      spans[1].style.opacity = '0';
+      spans[2].style.transform = 'translateY(-7px) rotate(-45deg)';
+    } else {
+      spans[0].style.transform = '';
+      spans[1].style.opacity = '';
+      spans[2].style.transform = '';
+    }
+  }
+
+  // Active timeline item highlight on hover
+  document.querySelectorAll('.timeline-item').forEach(item => {
+    item.addEventListener('mouseenter', () => item.classList.add('active'));
+    item.addEventListener('mouseleave', () => item.classList.remove('active'));
+  });
+
+  // Smooth scroll for all anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
